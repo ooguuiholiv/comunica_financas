@@ -58,6 +58,7 @@
         <button id="tab-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Contatos</button>
         <button id="tab-rules" class="tab-btn" onclick="switchTab('rules')">Regras de Pagamento</button>
         <button id="tab-history" class="tab-btn" onclick="switchTab('history')">Histórico do Chat</button>
+        <button id="tab-settings" class="tab-btn" onclick="switchTab('settings')">⚙️ Configurações</button>
       </div>
 
       <!-- CONTEÚDO DA ABA: Gerenciar Contatos -->
@@ -131,6 +132,54 @@
               </div>
             </div>
           </div>
+        </section>
+      </div>
+
+      <!-- CONTEÚDO DA ABA: Configurações Globais -->
+      <div id="view-settings" class="tab-content">
+        <section class="card settings-card">
+          <div class="card-header">
+            <h2>Configurações Globais do Bot</h2>
+            <button id="btn-save-settings" class="btn btn-primary">💾 Salvar Alterações</button>
+          </div>
+          <p class="settings-description">Estas mensagens são enviadas automaticamente quando nenhuma regra de pagamento específica é encontrada para a data consultada. Use <code>{data}</code> como variável que será substituída pela data do usuário.</p>
+
+          <div class="settings-form">
+            <div class="setting-item">
+              <div class="setting-label-group">
+                <span class="setting-icon overdue">⚠️</span>
+                <div>
+                  <label for="setting-msg-overdue">Mensagem para Data Vencida</label>
+                  <small>Quando a data consultada já passou (está no passado).</small>
+                </div>
+              </div>
+              <textarea id="setting-msg-overdue" rows="3" class="setting-textarea" placeholder="Mensagem para data vencida..."></textarea>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-label-group">
+                <span class="setting-icon this-week">ℹ️</span>
+                <div>
+                  <label for="setting-msg-this-week">Mensagem para Vencimento Nesta Semana</label>
+                  <small>Quando a data está dentro dos próximos 7 dias.</small>
+                </div>
+              </div>
+              <textarea id="setting-msg-this-week" rows="3" class="setting-textarea" placeholder="Mensagem para vencimento esta semana..."></textarea>
+            </div>
+
+            <div class="setting-item">
+              <div class="setting-label-group">
+                <span class="setting-icon future">📅</span>
+                <div>
+                  <label for="setting-msg-future">Mensagem para Data Futura</label>
+                  <small>Quando a data está mais de 7 dias no futuro.</small>
+                </div>
+              </div>
+              <textarea id="setting-msg-future" rows="3" class="setting-textarea" placeholder="Mensagem para data futura..."></textarea>
+            </div>
+          </div>
+
+          <div id="settings-toast" class="settings-toast hidden">✅ Configurações salvas com sucesso!</div>
         </section>
       </div>
 

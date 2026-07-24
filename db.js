@@ -47,12 +47,12 @@ const defaultAuthorized = [
 ];
 
 export async function initDb() {
-  // Create users table
+  // Create users table - DEFAULT 1 for active authorization
   await dbRun(`
     CREATE TABLE IF NOT EXISTS users (
       phone TEXT PRIMARY KEY,
       name TEXT,
-      is_authorized INTEGER DEFAULT 0,
+      is_authorized INTEGER DEFAULT 1,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -94,6 +94,14 @@ export async function initDb() {
     )
   `);
 
+  // Create settings table
+  await dbRun(`
+    CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT
+    )
+  `);
+
   // Seed default authorized users
   for (const item of defaultAuthorized) {
     const user = await dbGet(`SELECT * FROM users WHERE phone = ?`, [item.phone]);
@@ -129,18 +137,40 @@ export async function initDb() {
     ]);
   }
 
+  // Seed default settings if empty
+  const seedSettings = [
+    {
+      key: 'msg_overdue',
+      value: '⚠️ A data consultada ({data}) já passou/venceu. Caso precise do comprovante ou queira justificar o pagamento, entre em contato diretamente com o financeiro.'
+    },
+    {
+      key: 'msg_this_week',
+      value: 'ℹ️ O pagamento para o dia {data} (vencimento esta semana) está programado. Se houver alguma pendência ou necessidade de justificativa, entre em contato.'
+    },
+    {
+      key: 'msg_future',
+      value: '📅 O pagamento para o dia {data} está agendado e programado para ser realizado normalmente na data de vencimento. Não é necessária nenhuma ação no momento.'
+    }
+  ];
+
+  for (const s of seedSettings) {
+    const setting = await dbGet(`SELECT * FROM settings WHERE key = ?`, [s.key]);
+    if (!setting) {
+      await dbRun(`INSERT INTO settings (key, value) VALUES (?, ?)`, [s.key, s.value]);
+    }
+  }
+
   console.log("Database initialized successfully.");
 }
 
-// User-related CRUD
+// User-related CRUD - new users are authorized (1) by default
 export async function getOrCreateUser(phone, name = '') {
   let user = await dbGet(`SELECT * FROM users WHERE phone = ?`, [phone]);
   if (!user) {
-    const isAuthorized = defaultAuthorized.some(item => item.phone === phone) ? 1 : 0;
     await dbRun(`
       INSERT INTO users (phone, name, is_authorized)
-      VALUES (?, ?, ?)
-    `, [phone, name || `Contato (${phone.slice(-4)})`, isAuthorized]);
+      VALUES (?, ?, 1)
+    `, [phone, name || `Contato (${phone.slice(-4)})`]);
     user = await dbGet(`SELECT * FROM users WHERE phone = ?`, [phone]);
   } else if (name && user.name !== name) {
     await dbRun(`UPDATE users SET name = ? WHERE phone = ?`, [name, phone]);

@@ -7,7 +7,8 @@ import {
   updateSession, 
   clearSession, 
   logInteraction,
-  dbAll
+  dbAll,
+  dbGet
 } from './db.js';
 
 dotenv.config();
@@ -198,6 +199,17 @@ export async function processMessage(phone, text, pushName = '') {
   }
 }
 
+// Helper to retrieve value from settings table
+async function getSettingValue(key, defaultValue) {
+  try {
+    const row = await dbGet(`SELECT value FROM settings WHERE key = ?`, [key]);
+    return row ? row.value : defaultValue;
+  } catch (err) {
+    console.error(`Erro ao carregar configuracao ${key}:`, err);
+    return defaultValue;
+  }
+}
+
 // Query SQLite for overlapping rules and format output
 async function handlePaymentsQuery(phone, range, stateBefore) {
   const { startDate, endDate } = range;
@@ -215,8 +227,40 @@ async function handlePaymentsQuery(phone, range, stateBefore) {
     : `no período de *${formatFriendlyDate(startDate)}* a *${formatFriendlyDate(endDate)}*`;
 
   if (rules.length === 0) {
-    // Default reply when no custom rules match
-    responseText = `ℹ️ *Status de Pagamentos:*\n\nNão há nenhuma restrição ou alteração cadastrada para pagamentos ${rangeStr}.\n\nOs pagamentos programados para este período serão efetuados normalmente.`;
+    // No custom rule matches, classify the date dynamically
+    const todayStr = new Date().toLocaleDateString('sv-SE');
+    const today = new Date(todayStr);
+
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+    const nextWeekStr = nextWeek.toLocaleDateString('sv-SE');
+
+    let template = '';
+    const dateLabel = startDate === endDate 
+      ? formatFriendlyDate(startDate)
+      : `${formatFriendlyDate(startDate)} a ${formatFriendlyDate(endDate)}`;
+
+    if (startDate < todayStr) {
+      // Overdue (Data vencida)
+      template = await getSettingValue(
+        'msg_overdue', 
+        '⚠️ A data consultada ({data}) já passou/venceu. Caso precise do comprovante ou queira justificar o pagamento, entre em contato diretamente com o financeiro.'
+      );
+    } else if (startDate >= todayStr && startDate <= nextWeekStr) {
+      // Due within the week (Vencendo na semana)
+      template = await getSettingValue(
+        'msg_this_week', 
+        'ℹ️ O pagamento para o dia {data} (vencimento esta semana) está programado. Se houver alguma pendência ou necessidade de justificativa, entre em contato.'
+      );
+    } else {
+      // Future (Futura)
+      template = await getSettingValue(
+        'msg_future', 
+        '📅 O pagamento para o dia {data} está agendado e programado para ser realizado normalmente na data de vencimento.'
+      );
+    }
+
+    responseText = template.replace(/{data}/g, dateLabel);
   } else {
     // Format response combining all overlapping rules
     responseText = `ℹ️ *Status de Pagamentos ${rangeStr}:*\n\n`;

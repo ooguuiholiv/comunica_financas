@@ -285,7 +285,41 @@ app.post('/api/simulate-message', async (req, res) => {
 });
 
 // ----------------------------------------------------
-// 3. SERVER-SENT EVENTS (SSE) FOR REAL-TIME LIVE UPDATE
+// 3. CONFIGURAÇÕES GLOBAIS DO BOT
+// ----------------------------------------------------
+
+// List all settings as a key/value object
+app.get('/api/settings', async (req, res) => {
+  try {
+    const rows = await dbAll(`SELECT key, value FROM settings`);
+    const settingsObj = {};
+    rows.forEach(r => { settingsObj[r.key] = r.value; });
+    res.json(settingsObj);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Upsert a single setting
+app.post('/api/settings', async (req, res) => {
+  const { key, value } = req.body;
+  if (!key || value === undefined) {
+    return res.status(400).json({ error: 'Chave e valor são obrigatórios.' });
+  }
+  try {
+    await dbRun(
+      `INSERT INTO settings (key, value) VALUES (?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+      [key, value]
+    );
+    res.json({ success: true, message: 'Configuração salva com sucesso.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------------------------------------------
+// 4. SERVER-SENT EVENTS (SSE) FOR REAL-TIME LIVE UPDATE
 // ----------------------------------------------------
 let clients = [];
 

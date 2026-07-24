@@ -39,6 +39,7 @@ const statMsgCount = document.getElementById('stat-msg-count');
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
   fetchDashboardData();
+  fetchSettings();
   setupEventListeners();
   setupSSE();
 });
@@ -157,11 +158,15 @@ function setupEventListeners() {
     }
   });
 
-  // Query tab elements
+  // Refresh history
   const selectHistoryUser = document.getElementById('select-history-user');
   const btnRefreshHistory = document.getElementById('btn-refresh-history');
   if (selectHistoryUser) selectHistoryUser.addEventListener('change', loadUserQueriesHistory);
   if (btnRefreshHistory) btnRefreshHistory.addEventListener('click', loadUserQueriesHistory);
+
+  // Save settings button
+  const btnSaveSettings = document.getElementById('btn-save-settings');
+  if (btnSaveSettings) btnSaveSettings.addEventListener('click', saveSettings);
 }
 
 // Setup EventSource / SSE channel
@@ -216,6 +221,64 @@ async function fetchDashboardData() {
     updateStatsCounters(interactions.length);
   } catch (err) {
     console.error('Erro ao sincronizar dados do painel:', err);
+  }
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+async function fetchSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const settings = await res.json();
+
+    const overdueEl = document.getElementById('setting-msg-overdue');
+    const thisWeekEl = document.getElementById('setting-msg-this-week');
+    const futureEl = document.getElementById('setting-msg-future');
+
+    if (overdueEl && settings.msg_overdue) overdueEl.value = settings.msg_overdue;
+    if (thisWeekEl && settings.msg_this_week) thisWeekEl.value = settings.msg_this_week;
+    if (futureEl && settings.msg_future) futureEl.value = settings.msg_future;
+  } catch (err) {
+    console.error('Erro ao carregar configurações:', err);
+  }
+}
+
+async function saveSettings() {
+  const overdueVal = document.getElementById('setting-msg-overdue').value.trim();
+  const thisWeekVal = document.getElementById('setting-msg-this-week').value.trim();
+  const futureVal = document.getElementById('setting-msg-future').value.trim();
+
+  if (!overdueVal || !thisWeekVal || !futureVal) {
+    alert('Preencha todas as mensagens antes de salvar.');
+    return;
+  }
+
+  const settingsToSave = [
+    { key: 'msg_overdue', value: overdueVal },
+    { key: 'msg_this_week', value: thisWeekVal },
+    { key: 'msg_future', value: futureVal }
+  ];
+
+  try {
+    for (const s of settingsToSave) {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(s)
+      });
+    }
+
+    // Show success toast
+    const toast = document.getElementById('settings-toast');
+    if (toast) {
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+  } catch (err) {
+    console.error('Erro ao salvar configurações:', err);
+    alert('Erro ao salvar. Verifique a conexão com o servidor.');
   }
 }
 
@@ -519,6 +582,10 @@ function switchTab(tabName) {
     updateHistoryUserDropdown();
     loadUserQueriesHistory();
   }
+
+  if (tabName === 'settings') {
+    fetchSettings();
+  }
 }
 
 // Load logs timeline for the selected user
@@ -593,3 +660,5 @@ window.openEditRuleModal = openEditRuleModal;
 window.switchTab = switchTab;
 window.loadUserQueriesHistory = loadUserQueriesHistory;
 window.closeModal = closeModal;
+window.saveSettings = saveSettings;
+window.fetchSettings = fetchSettings;

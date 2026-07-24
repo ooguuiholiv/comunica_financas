@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Administrativo - Comunica Finanças</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="glass-bg"></div>
+  
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <span class="pulse-dot"></span>
+        <h1>Comunica <span>Finanças</span></h1>
+      </div>
+      <div class="system-time">
+        <p>Sistema de Pagamentos Ativo</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-grid">
+    <!-- COLUNA DA ESQUERDA: Métricas, Tabelas de Configuração e Histórico -->
+    <div class="left-panel">
+      
+      <!-- Métricas -->
+      <section class="stats-section grid-3">
+        <div class="stat-card">
+          <div class="stat-icon auth">✔</div>
+          <div class="stat-info">
+            <h3 id="stat-auth-count">0</h3>
+            <p>Contatos Autorizados</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon rule">📅</div>
+          <div class="stat-info">
+            <h3 id="stat-rules-count">0</h3>
+            <p>Regras de Pagamento</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon msg">💬</div>
+          <div class="stat-info">
+            <h3 id="stat-msg-count">0</h3>
+            <p>Interações Registradas</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Abas de Navegação -->
+      <div class="tabs-nav">
+        <button id="tab-dashboard" class="tab-btn active" onclick="switchTab('dashboard')">Contatos</button>
+        <button id="tab-rules" class="tab-btn" onclick="switchTab('rules')">Regras de Pagamento</button>
+        <button id="tab-history" class="tab-btn" onclick="switchTab('history')">Histórico do Chat</button>
+      </div>
+
+      <!-- CONTEÚDO DA ABA: Gerenciar Contatos -->
+      <div id="view-dashboard" class="tab-content active">
+        <section class="card user-manager-card">
+          <div class="card-header">
+            <h2>Gerenciar Contatos Autorizados</h2>
+            <button id="btn-show-add-modal" class="btn btn-primary">+ Adicionar Contato</button>
+          </div>
+          
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome / Contato</th>
+                  <th>Telefone</th>
+                  <th>Status Bot</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body">
+                <!-- Preenchido dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- CONTEÚDO DA ABA: Regras de Pagamento -->
+      <div id="view-rules" class="tab-content">
+        <section class="card rules-manager-card">
+          <div class="card-header">
+            <h2>Regras de Calendário de Pagamentos</h2>
+            <button id="btn-show-rule-modal" class="btn btn-primary">+ Criar Nova Regra</button>
+          </div>
+          
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Período</th>
+                  <th>Status</th>
+                  <th>Mensagem Customizada do Bot</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="rules-table-body">
+                <!-- Preenchido dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+
+      <!-- CONTEÚDO DA ABA: Histórico -->
+      <div id="view-history" class="tab-content">
+        <section class="card user-queries-card">
+          <div class="card-header">
+            <h2>Histórico de Conversas</h2>
+            <div class="header-filters">
+              <select id="select-history-user" class="select-filter">
+                <option value="">-- Selecionar Contato --</option>
+              </select>
+              <button id="btn-refresh-history" class="btn btn-secondary">🔄 Atualizar</button>
+            </div>
+          </div>
+          <div class="queries-container">
+            <div class="queries-timeline" id="queries-timeline-body">
+              <div class="timeline-empty">
+                Selecione um contato para visualizar o histórico detalhado de mensagens.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+    </div>
+
+    <!-- COLUNA DA DIREITA: Simulador Interativo de WhatsApp -->
+    <div class="right-panel">
+      <section class="phone-mockup">
+        <div class="phone-header">
+          <div class="camera-notch"></div>
+          <div class="phone-status">
+            <div class="phone-user-select-container">
+              <label for="select-simulator-user">Simular como:</label>
+              <select id="select-simulator-user">
+                <!-- Preenchido dinamicamente -->
+              </select>
+            </div>
+            <div class="user-status-indicator" id="simulator-user-status">
+              <span class="status-dot"></span>
+              <span id="simulator-user-status-text">Carregando...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="phone-screen">
+          <div class="chat-header">
+            <div class="chat-avatar">CF</div>
+            <div class="chat-user-info">
+              <h3>Comunica Finanças</h3>
+              <p>Online</p>
+            </div>
+          </div>
+
+          <div class="chat-body" id="chat-messages-container">
+            <!-- Balões de conversa dinâmicos -->
+            <div class="system-message">
+              Selecione um contato no menu superior do aparelho para iniciar a simulação.
+            </div>
+          </div>
+
+          <div class="chat-footer">
+            <input type="text" id="chat-input-message" placeholder="Pergunte sobre uma data..." autocomplete="off">
+            <button id="btn-chat-send">➤</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- MODAL: Adicionar/Editar Contato -->
+  <div class="modal-overlay" id="add-user-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-title">Adicionar Novo Contato</h3>
+        <button class="modal-close" onclick="closeModal('add-user-modal')">✖</button>
+      </div>
+      <form id="add-user-form">
+        <input type="hidden" id="edit-phone-key">
+        <div class="form-group">
+          <label for="input-phone">Número de Telefone (com DDI e DDD)</label>
+          <input type="text" id="input-phone" placeholder="Ex: 5534999999999" required>
+          <small>Digite apenas números (Ex: 55 + DDD + Número)</small>
+        </div>
+        <div class="form-group">
+          <label for="input-name">Nome do Contato</label>
+          <input type="text" id="input-name" placeholder="Ex: Guilherme Franco" required>
+        </div>
+        <div class="form-group checkbox-group">
+          <input type="checkbox" id="input-authorized" checked>
+          <label for="input-authorized">Autorizar bot a responder este número</label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('add-user-modal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-user">Salvar Contato</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Adicionar/Editar Regra de Pagamento -->
+  <div class="modal-overlay" id="rule-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="rule-modal-title">Configurar Regra de Pagamento</h3>
+        <button class="modal-close" onclick="closeModal('rule-modal')">✖</button>
+      </div>
+      <form id="rule-form">
+        <input type="hidden" id="edit-rule-id">
+        <div class="form-row">
+          <div class="form-group col">
+            <label for="input-start-date">Data de Início</label>
+            <input type="date" id="input-start-date" required>
+          </div>
+          <div class="form-group col">
+            <label for="input-end-date">Data Final</label>
+            <input type="date" id="input-end-date" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="input-allowed">Status de Pagamento</label>
+          <select id="input-allowed" class="select-filter" style="width: 100%;" required>
+            <option value="1">✅ Pagamentos Normais / Permitidos</option>
+            <option value="0">⚠️ Pagamentos Suspensos / Bloqueados</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="input-message">Mensagem do Bot (Resposta para este período)</label>
+          <textarea id="input-message" rows="4" placeholder="Ex: Atenção, os pagamentos estarão suspensos neste período devido a feriados bancários..." required></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal('rule-modal')">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-rule">Salvar Regra</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
